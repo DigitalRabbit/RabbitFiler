@@ -17,27 +17,16 @@
 
 #include "model/filelist.h"
 
+#include <iostream>
+
 namespace digirabi {
 
-/*! TreeView 上で表示される mName 列 Header */
-const FileStore::gString FileStore::COLUMN_NAME = "名前";
-/*! TreeView 上で表示される mSize 列 Header */
-const FileStore::gString FileStore::COLUMN_SIZE = "サイズ";
-/*! TreeView 上で表示される mType 列 Header */
-const FileStore::gString FileStore::COLUMN_TYPE = "種類";
-/*! TreeView 上で表示される mAccess 列 Header */
-const FileStore::gString FileStore::COLUMN_ACCESS = "アクセス権";
-/*! TreeView 上で表示される mUpdate 列 Header */
-const FileStore::gString FileStore::COLUMN_UPDATE = "更新日時";
-/*! TreeView 上で表示される mHolder 列 Header */
-const FileStore::gString FileStore::COLUMN_HOLDER = "所有者";
-
 /*!
- * ListStore instance を生成し、以下の初期化を行います。\n
+ * ListStore instance を生成し、 FileRecord class の内容で列情報を初期化します。\n
  */
 FileStore::FileStore()
 {
-    mrStore = Store::create( mRecord );
+    mrStore = Gtk::ListStore::create( mRecord );
 }
 
 /*! <b>現在未使用</b> */
@@ -45,7 +34,9 @@ FileStore::~FileStore() {}
 
 /*!
  * 渡された TreeView へと ListStore を設定し、\n
- * Store 内の Column を TreeView へと表示するように設定を行います。
+ * Store 内の Column を TreeView へと表示するように設定を行います。\n
+ * その際、以下の設定も同時に行います。
+ * \li  各列でのソートを可能にする。
  *
  * \param[in]   apTreeView  設定先 TreeView instance pointer
  */
@@ -53,13 +44,44 @@ void FileStore::attach( Gtk::TreeView* apTreeView )
 {
     apTreeView->set_model( mrStore );
 
-    /*! \todo vector なりを使って、巧くループさせる */
-    apTreeView->append_column( "名前", mRecord.mName );
-    apTreeView->append_column( "サイズ", mRecord.mSize );
-    apTreeView->append_column( "種類", mRecord.mType );
-    apTreeView->append_column( "アクセス権", mRecord.mAccess );
-    apTreeView->append_column( "更新日時", mRecord.mUpdate );
-    apTreeView->append_column( "所有者", mRecord.mHolder );
+    /* ListStore に登録済みの列を TextView に登録し、ソートを可能にする。
+     * ちなみに、取得した Record の内容は、以下の通り。
+     *
+     * record
+     * ├ first     -> 列 Index
+     * └ second    -> 列情報 std::pair インスタンスポインタ
+     *    ├ first  -> 列ヘッダ文字列
+     *    └ second -> 列定義 TreeModelColumn インスタンス
+     */
+    for( std::pair< int, FileRecord::ColumnInfo* > record : mRecord.mColumnMap )
+    {
+        apTreeView->insert_column( ( *record.second ).first, ( *record.second ).second, record.first );
+        Gtk::TreeView::Column* pColumn = apTreeView->get_column( record.first );
+        if( pColumn != nullptr )
+        {
+            pColumn->set_sort_column( ( *record.second ).second );
+        }
+    }
+
+    /*! \todo 直接ホームフォルダではなく、初期設定値に従うように修正したい */
+    Glib::Dir dir( Glib::get_home_dir() );
+    std::list<std::string> entries( dir.begin(), dir.end() );
+
+    /*! \todo ユーティリティを使ってファイル情報を全て取得する。 */
+    try
+    {
+        FileRecord::StringColumn nameCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::NAME );
+        // モデルに行を追加するとビューの表示も同時に更新される
+        for( std::string entry : entries )
+        {
+            Gtk::TreeModel::Row row = *( mrStore->append() );
+            row[ nameCol ] = entry;
+        }
+    }
+    catch( std::invalid_argument& ex )
+    {
+        std::cerr << "Throwing exception!! : " << ex.what() << std::endl;
+    }
 
     return;
 }

@@ -20,14 +20,8 @@
 namespace digirabi {
 
 /*!
- * 各種 Widget instance を取得し、コールバック関数の登録を行っています。\n
- * 取得する Instance と 設定するコールバック関数は以下の通りです。
- * <table>
- *  <tr><th>Instance</th><th>Widget name</th><th>Menber</th><th>Callback function</th></tr>
- *  <tr align="center"><td>Gtk::Button</td><td>bt_create</td><td>yes</td><td>onCreateClicked</td></tr>
- *  <tr align="center"><td>Gtk::Button</td><td>bt_cancel</td><td>yes</td><td>onCancelClicked</td></tr>
- *  <tr align="center"><td>Gtk::FileChooserButton</td><td>fcb_project_dir</td><td>yes</td><td>onProjectDirSelected</td></tr>
- * </table>
+ * 左右ペイン用の Gtk::TreeView を取得し、\n
+ * リストストアとして digirabi::FileStore を attach しています。
  *
  * \param[in]   aCobject     基底クラス引渡し用 Object instance
  * \param[in]   aRefBuilder  GTK Builder instance
@@ -38,14 +32,9 @@ FilerWindow::FilerWindow( BaseObjectType* aCobject, const Glib::RefPtr< Gtk::Bui
     // Get the Glade-instantiated widget, and connect a signal handler.
     mrBuilder->get_widget( "tv_left", mpLeftView );
     mLeftStore.attach( mpLeftView );
-//    mpLeftView->set_model( mrLeftStore );
-//
-//    mpLeftView->append_column( "名前", mLeftColumnRecord.mName );
-//    mpLeftView->append_column( "サイズ", mLeftColumnRecord.mSize );
-//    mpLeftView->append_column( "種類", mLeftColumnRecord.mType );
-//    mpLeftView->append_column( "アクセス権", mLeftColumnRecord.mAccess );
-//    mpLeftView->append_column( "更新日時", mLeftColumnRecord.mUpdateDate );
-//    mpLeftView->append_column( "所有者", mLeftColumnRecord.mHolder );
+
+    mrBuilder->get_widget( "tv_right", mpRightView );
+    mRightStore.attach( mpRightView );
 
     return;
 }

@@ -12,7 +12,8 @@
  *
  * \brief   メイン Window Class header file
  *
- * アプリケーションのルート Window として機能する Class を記述しているヘッダーファイルです。
+ * アプリケーションのルート Window として機能する
+ * Class を記述しているヘッダーファイルです。
  *
  * \author  Digital Rabbit(digital.rabbit.jp@gmail.com)
  * \date    2012/02/29
@@ -39,9 +40,15 @@ namespace digirabi {
  */
 class FilerWindow : public Gtk::Window
 {
+// ----- typedef -----
+private:
+    /*! \brief GTK Builder ( 参照ポインタ ) */
+    typedef Glib::RefPtr< Gtk::Builder > RefGtkBuilder;
+
+// ----- value and function -----
 public:
     /*! \brief コンストラクタ */
-    FilerWindow( BaseObjectType* aCobject, const Glib::RefPtr< Gtk::Builder >& aRefBuilder );
+    FilerWindow( BaseObjectType* aCobject, const RefGtkBuilder& aRefBuilder );
     /*! \brief デストラクタ */
     virtual ~FilerWindow();
 
@@ -49,14 +56,17 @@ protected:
 
 private:
     /*! \brief GTK+ Builder */
-    Glib::RefPtr< Gtk::Builder > mrBuilder;
+    RefGtkBuilder mrBuilder;
 
     /*! \brief 左 pain TreeView */
     Gtk::TreeView* mpLeftView;
+    /*! \brief 左 pain ListStore */
     digirabi::FileStore mLeftStore;
 
-    /*! \brief 右 Pain List store */
-    Glib::RefPtr< Gtk::ListStore > mrRightStore;
+    /*! \brief 右 pain TreeView */
+    Gtk::TreeView* mpRightView;
+    /*! \brief 右 pain ListStore */
+    digirabi::FileStore mRightStore;
 
 };
 

@@ -229,27 +229,44 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <child>
-              <object class="GtkTreeView" id="tv_left">
+              <object class="GtkScrolledWindow" id="sw_left">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="enable_tree_lines">True</property>
-                <child internal-child="selection">
-                  <object class="GtkTreeSelection" id="tvs_left">
-                    <property name="mode">multiple</property>
+                <property name="shadow_type">in</property>
+                <child>
+                  <object class="GtkTreeView" id="tv_left">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="enable_grid_lines">horizontal</property>
+                    <child internal-child="selection">
+                      <object class="GtkTreeSelection" id="tv_left_selection">
+                        <property name="mode">multiple</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
               <packing>
-                <property name="resize">True</property>
+                <property name="resize">False</property>
                 <property name="shrink">True</property>
               </packing>
             </child>
             <child>
-              <object class="GtkTreeView" id="tv_right">
+              <object class="GtkScrolledWindow" id="sw_right">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <child internal-child="selection">
-                  <object class="GtkTreeSelection" id="tvs_right"/>
+                <property name="shadow_type">in</property>
+                <child>
+                  <object class="GtkTreeView" id="tv_right">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="enable_grid_lines">horizontal</property>
+                    <child internal-child="selection">
+                      <object class="GtkTreeSelection" id="tv_right_selection">
+                        <property name="mode">multiple</property>
+                      </object>
+                    </child>
+                  </object>
                 </child>
               </object>
               <packing>

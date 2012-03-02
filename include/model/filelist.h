@@ -19,6 +19,9 @@
  * \date    2012/02/29
  */
 
+#include <map>
+#include <stdexcept>
+
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
 
@@ -27,6 +30,9 @@
 #include <gtkmm/treemodelcolumn.h>
 
 namespace digirabi {
+
+class FileRecord;
+class FileStore;
 
 /*! \brief ファイル表示 ColumnRecord
  *
@@ -38,28 +44,49 @@ namespace digirabi {
  */
 class FileRecord : public Gtk::TreeModelColumnRecord
 {
-public:
-    /*! \brief 名前 Column */
-    Gtk::TreeModelColumn< Glib::ustring >  mName;
-    /*! \brief サイズ Column */
-    Gtk::TreeModelColumn< unsigned long long >  mSize;
-    /*! \brief 種類 Column */
-    Gtk::TreeModelColumn< Glib::ustring >  mType;
-    /*! \brief アクセス権 Column */
-    Gtk::TreeModelColumn< Glib::ustring >  mAccess;
-    /*! \brief 更新日時 Column */
-    Gtk::TreeModelColumn< Glib::ustring >  mUpdate;
-    /*! \brief 所有者 Column */
-    Gtk::TreeModelColumn< Glib::ustring >  mHolder;
+    friend class FileStore;
 
+// ----- typedef and inner class -----
+private:
+    /*! \brief 文字列 */
+    typedef Glib::ustring Gstring;
+
+public:
+    /*! \brief ファイル一覧上の列種別( 文字列列 ) */
+    typedef Gtk::TreeModelColumn< Gstring > StringColumn;
+    /*! \brief 名前と種別のペア */
+    typedef std::pair< Gstring, StringColumn > ColumnInfo;
+
+    /*! \brief 列 ID
+     *
+     * 各列の Index を表す class enum です。\n
+     * ここで定義されている位置が、そのまま列の Index 値となります。
+     */
+    enum class ColumnIndex
+    {
+        NAME   = 0, /*!< 名前 */
+        SIZE   = 1, /*!< サイズ */
+        TYPE   = 2, /*!< 種類 */
+        ACCESS = 3, /*!< アクセス権 */
+        UPDATE = 4, /*!< 更新日時 */
+        HOLDER = 5, /*!< 所有者 */
+    };
+
+// ----- value and function -----
+public:
     /*! \brief コンストラクタ */
     FileRecord();
     /*! \brief デストラクタ */
-    virtual ~FileRecord();
+    ~FileRecord();
+
+    /*! \brief TreeModelColumn 取得 */
+    StringColumn getTreeModelColumn( ColumnIndex aIndex ) throw( std::invalid_argument );
 
 protected:
 
 private:
+    /*! \brief 列の index, 名前と種類のマップ */
+    std::map< int, ColumnInfo* > mColumnMap;
 
 };
 
@@ -73,25 +100,15 @@ private:
  */
 class FileStore
 {
-public:
+// ----- typedef -----
+private:
     /*! \brief 文字列 */
-    typedef Glib::ustring   gString;
+    typedef Glib::ustring   Gstring;
     /*! \brief ファイル用リストストア */
-    typedef Gtk::ListStore  Store;
+    typedef Glib::RefPtr< Gtk::ListStore > RefStore;
 
-    /*! \brief mName 列名 */
-    static const gString COLUMN_NAME;
-    /*! \brief mSize 列名 */
-    static const gString COLUMN_SIZE;
-    /*! \brief mType 列名 */
-    static const gString COLUMN_TYPE;
-    /*! \brief mAccess 列名 */
-    static const gString COLUMN_ACCESS;
-    /*! \brief mUpdate 列名 */
-    static const gString COLUMN_UPDATE;
-    /*! \brief mHolder 列名 */
-    static const gString COLUMN_HOLDER;
-
+// ----- value and function -----
+public:
     /*! \brief コンストラクタ */
     FileStore();
     /*! \brief デストラクタ */
@@ -104,9 +121,9 @@ protected:
 
 private:
     /*! \brief ファイル一覧用 ListStore RefPtr */
-    Glib::RefPtr< Store > mrStore;
+    RefStore mrStore;
     /*! \brief Column record */
-    digirabi::FileRecord mRecord;
+    FileRecord mRecord;
 
 };
 

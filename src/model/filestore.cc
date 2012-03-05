@@ -71,11 +71,16 @@ void FileStore::attach( Gtk::TreeView* apTreeView )
     try
     {
         FileRecord::StringColumn nameCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::NAME );
+        FileRecord::StringColumn sizeCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::SIZE );
         // モデルに行を追加するとビューの表示も同時に更新される
         for( std::string entry : entries )
         {
             Gtk::TreeModel::Row row = *( mrStore->append() );
             row[ nameCol ] = entry;
+            GString str = Glib::get_home_dir();
+            str += "/" + entry;
+            File file( str );
+            row[ sizeCol ] = file.getFileSize();
         }
     }
     catch( std::invalid_argument& ex )

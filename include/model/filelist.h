@@ -18,6 +18,7 @@
  * \author  Digital Rabbit(digital.rabbit.jp@gmail.com)
  * \date    2012/02/29
  */
+#include "file.h"
 
 #include <map>
 #include <stdexcept>
@@ -49,13 +50,13 @@ class FileRecord : public Gtk::TreeModelColumnRecord
 // ----- typedef and inner class -----
 private:
     /*! \brief 文字列 */
-    typedef Glib::ustring Gstring;
+    typedef Glib::ustring GString;
 
 public:
     /*! \brief ファイル一覧上の列種別( 文字列列 ) */
-    typedef Gtk::TreeModelColumn< Gstring > StringColumn;
+    typedef Gtk::TreeModelColumn< GString > StringColumn;
     /*! \brief 名前と種別のペア */
-    typedef std::pair< Gstring, StringColumn > ColumnInfo;
+    typedef std::pair< GString, StringColumn > ColumnInfo;
 
     /*! \brief 列 ID
      *
@@ -103,7 +104,7 @@ class FileStore
 // ----- typedef -----
 private:
     /*! \brief 文字列 */
-    typedef Glib::ustring   Gstring;
+    typedef Glib::ustring   GString;
     /*! \brief ファイル用リストストア */
     typedef Glib::RefPtr< Gtk::ListStore > RefStore;
 
@@ -124,6 +125,8 @@ private:
     RefStore mrStore;
     /*! \brief Column record */
     FileRecord mRecord;
+    /*! \brief File list */
+    std::map< GString, File > mFileList;
 
 };
 

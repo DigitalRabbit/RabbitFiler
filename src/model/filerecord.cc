@@ -68,8 +68,7 @@ FileRecord::~FileRecord()
  *
  * \exception   std::invalid_argument   引数に不正な列 Index が渡された
  */
-FileRecord::StringColumn FileRecord::getTreeModelColumn( ColumnIndex aIndex )
-        throw( std::invalid_argument )
+FileRecord::StringColumn FileRecord::getTreeModelColumn( ColumnIndex aIndex ) throw( std::invalid_argument )
 {
     std::map< int, ColumnInfo* >::iterator iter = mColumnMap.find( static_cast< int >( aIndex ) );
     if( iter == mColumnMap.end() )

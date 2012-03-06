@@ -46,8 +46,15 @@ public:
     /*! \brief デストラクタ */
     ~File();
 
-    /*! \brief ファイルサイズ取得 */
-    Glib::ustring getFileSize();
+    /*! \brief Name 取得 */
+    Glib::ustring getName();
+    /*! \brief Size 取得 */
+    Glib::ustring getSize();
+    /*! \brief Content type 取得 */
+    Glib::ustring getContentType();
+    /*! \brief Description ( Content type 詳細 ) 取得 */
+    Glib::ustring getContentTypeDescription();
+    Glib::ustring getAccessString();
 
 protected:
 
@@ -61,6 +68,13 @@ private:
     typedef Glib::RefPtr< Gio::FileInfo > RefGFileInfo;
 
 // ----- value and function -----
+    /*! File attribute - Name */
+    static const Glib::ustring FILE_NAME;
+    /*! File attribute - Size */
+    static const Glib::ustring FILE_SIZE;
+    /*! File attribute - Fast content type */
+    static const Glib::ustring FILE_CONTENT_TYPE;
+
     /*! \brief ファイルパス */
     const GString mFilePath;
     /*! \brief ファイル情報 */

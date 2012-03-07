@@ -35,14 +35,24 @@ FileStore::~FileStore() {}
 /*!
  * 渡された TreeView へと ListStore を設定し、\n
  * Store 内の Column を TreeView へと表示するように設定を行います。\n
- * その際、以下の設定も同時に行います。
- * \li  各列でのソートを可能にする。
+ * その際、以下の設定も同時に行います。\n
+ *  \li  TreeView へメンバの ListStore を登録。
+ *  \li  TreeView を親 View として設定。
+ *  \li  TreeView へ Callback を登録( Activate event )。
+ *  \li  TreeSelection を取得。
+ *  \li  各列でのソートを可能にする。
+ * また、 Path 情報から生成された File インスタンスと「名前」フィールドからなる File 用マップも同時に生成します。
  *
  * \param[in]   apTreeView  設定先 TreeView instance pointer
  */
 void FileStore::attach( Gtk::TreeView* apTreeView )
 {
     apTreeView->set_model( mrStore );
+
+    mpTreeView = apTreeView;
+    mpTreeView->signal_row_activated().connect( sigc::mem_fun( *this, &FileStore::onRowActivated ) );
+
+    mrSelection = mpTreeView->get_selection();
 
     /* ListStore に登録済みの列を TextView に登録し、ソートを可能にする。
      * ちなみに、取得した Record の内容は、以下の通り。
@@ -85,11 +95,37 @@ void FileStore::attach( Gtk::TreeView* apTreeView )
             row[ sizeCol ] = file.getSize();
             row[ typeCol ] = file.getContentTypeDescription();
             row[ accessCol ] = file.getAccessString();
+
+            mFileMap.insert( std::pair< GString, File >( file.getName(), file ) );
         }
     }
     catch( std::invalid_argument& ex )
     {
         std::cerr << "Throwing exception!! : " << ex.what() << std::endl;
+    }
+
+    return;
+}
+
+/*!
+ * リストの行がユーザー操作により決定された場合にコールされます。
+ *
+ * \note    「決定」とは、主に Enter キー押下、 マウスダブルクリックの事を指しています。
+ *
+ * \param[in]   aPath       決定時のリスト行 Path instance
+ * \param[in]   aColumn     決定時のリスト列 TreeViewColumn instance pointer
+ */
+void FileStore::onRowActivated( const Gtk::TreeModel::Path& aPath, Gtk::TreeViewColumn* aColumn )
+{
+    // Path オブジェクトから行情報を取得し、 File 別のランチャーを起動。
+    Gtk::TreeModel::iterator iter = mrStore->get_iter( aPath );
+    if( iter != nullptr )
+    {
+        Gtk::TreeModel::Row row = *iter;
+
+        FileRecord::StringColumn nameCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::NAME );
+        std::map< GString, File >::iterator filePair = mFileMap.find( row[ nameCol ] );
+        ( *filePair ).second.launchApp();
     }
 
     return;

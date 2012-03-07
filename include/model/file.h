@@ -54,7 +54,11 @@ public:
     Glib::ustring getContentType();
     /*! \brief Description ( Content type 詳細 ) 取得 */
     Glib::ustring getContentTypeDescription();
+    /*! \brief アクセス権情報文字列取得 */
     Glib::ustring getAccessString();
+
+    /*! \brief 関連アプリ起動 */
+    bool launchApp();
 
 protected:
 

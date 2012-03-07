@@ -113,20 +113,27 @@ public:
     /*! \brief コンストラクタ */
     FileStore();
     /*! \brief デストラクタ */
-    virtual ~FileStore();
+    ~FileStore();
 
     /*! \brief ListStore 設定 */
     void attach( Gtk::TreeView* apTreetView );
 
+    /*! \brief リスト行決定 */
+    void onRowActivated( const Gtk::TreeModel::Path& aPath, Gtk::TreeViewColumn* aColumn );
+
 protected:
 
 private:
+    /*! \brief 接続先 TreeView ポインタ ( 解放不必要 ) */
+    Gtk::TreeView* mpTreeView;
+    /*! \brief 接続先 TreeSelection RefPtr */
+    Glib::RefPtr< Gtk::TreeSelection > mrSelection;
     /*! \brief ファイル一覧用 ListStore RefPtr */
     RefStore mrStore;
     /*! \brief Column record */
     FileRecord mRecord;
-    /*! \brief File list */
-    std::map< GString, File > mFileList;
+    /*! \brief Name - File instance map */
+    std::map< GString, File > mFileMap;
 
 };
 

@@ -21,6 +21,8 @@
 #include <list>
 
 #include <fcntl.h>
+
+#include <giomm/appinfo.h>
 #include <giomm/contenttype.h>
 
 namespace digirabi {
@@ -29,7 +31,7 @@ namespace digirabi {
 const Glib::ustring File::FILE_NAME = G_FILE_ATTRIBUTE_STANDARD_NAME;
 /*! File attribute - Size */
 const Glib::ustring File::FILE_SIZE = G_FILE_ATTRIBUTE_STANDARD_SIZE;
-/*! File attribute - Fast content type */
+/*! File attribute - Content type */
 const Glib::ustring File::FILE_CONTENT_TYPE = G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE;
 
 /*!
@@ -46,21 +48,13 @@ File::File( const GString& aPath ) throw( std::invalid_argument )
 {
     if( mFilePath.empty() || !Glib::file_test( mFilePath, Glib::FILE_TEST_EXISTS ) )
     {
-        GString what = "Unknown file or directory path.\nValue : " + aPath;
+        GString what = "Unknown file or directory path.\nValue : " + mFilePath;
         throw std::invalid_argument( what );
     }
 
-    RefGFile file = Gio::File::create_for_path( aPath );
+    RefGFile file = Gio::File::create_for_path( mFilePath );
     mFileInfo = file->query_info();
-//    std::list< GString > infoList = info->list_attributes( "standard" );
-//    Glib::ustring str;
-//    for( Glib::ustring work : infoList )
-//    {
-//        str += work + ", ";
-//    }
-//
-//    std::cout << "Attributes value : " << str << std::endl;
-//    std::cout << "File content type : " << info->get_attribute_as_string( "standard::content-type" ) << std::endl;
+
     return;
 }
 
@@ -88,9 +82,9 @@ Glib::ustring File::getSize()
 }
 
 /*!
- * FileInfo から <b><i>&lt;standard::fast_content_type&gt;</i></b> の属性を Glib::ustring で返却します。
+ * FileInfo から <b><i>&lt;standard::content_type&gt;</i></b> の属性を Glib::ustring で返却します。
  *
- * \return Glib::ustring    <b><i>&lt;standard::fast_content_type&gt;</i></b> 属性値
+ * \return Glib::ustring    <b><i>&lt;standard::content_type&gt;</i></b> 属性値
  */
 Glib::ustring File::getContentType()
 {
@@ -98,7 +92,7 @@ Glib::ustring File::getContentType()
 }
 
 /*!
- * FileInfo から <b><i>&lt;standard::fast_content_type&gt;</i></b> を取得し、\n
+ * FileInfo から <b><i>&lt;standard::content_type&gt;</i></b> を取得し、\n
  * Content type の詳細( <i>human readable description</i> と言っている )を返却します。
  *
  * \return Glib::ustring    content type 詳細文字列 ( <i>human readable description</i> )
@@ -179,9 +173,24 @@ Glib::ustring File::getAccessString()
     if( ( access & S_IXOTH ) != 0 ) result += "x";
     else                            result += "-";
 
-    std::cout << "access : "<< result << ", name : " << getName() << std::endl;
-
     return ( result );
+}
+
+/*!
+ * ファイルに関連付けされたアプリケーションを起動します。
+ *
+ * \return  bool    起動可否
+ * \retval  true    成功
+ * \retval  false   失敗
+ *
+ * \todo nautilus 等で変更したアプリケーションを起動する方法を調査
+ */
+bool File::launchApp()
+{
+    GString contentType = mFileInfo->get_attribute_as_string( FILE_CONTENT_TYPE );
+    Glib::RefPtr< Gio::AppInfo > info = Gio::AppInfo::get_default_for_type( contentType );
+
+    return ( info->launch( Gio::File::create_for_path( mFilePath ) ) );
 }
 
 } // namespace digirabi

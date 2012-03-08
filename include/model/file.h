@@ -44,7 +44,7 @@ public:
     /*! \brief コンストラクタ */
     File( const Glib::ustring& aPath ) throw( std::invalid_argument );
     /*! \brief デストラクタ */
-    ~File();
+    virtual ~File();
 
     /*! \brief Name 取得 */
     Glib::ustring getName();
@@ -56,6 +56,10 @@ public:
     Glib::ustring getContentTypeDescription();
     /*! \brief アクセス権情報文字列取得 */
     Glib::ustring getAccessString();
+    /*! \brief 更新日時文字列取得 */
+    Glib::ustring getUpdateTime();
+    /*! \brief 所有者文字列取得 */
+    Glib::ustring getOwner();
 
     /*! \brief 関連アプリ起動 */
     bool launchApp();
@@ -67,17 +71,21 @@ private:
     /*! \brief このクラスで使用されるデフォルト文字列 */
     typedef Glib::ustring GString;
     /*! \brief GIO::File class 参照ポインタ */
-    typedef Glib::RefPtr< Gio::File > RefGFile;
+    typedef Glib::RefPtr<Gio::File> RefGFile;
     /*! \brief GIO::FileInfo class 参照ポインタ */
-    typedef Glib::RefPtr< Gio::FileInfo > RefGFileInfo;
+    typedef Glib::RefPtr<Gio::FileInfo> RefGFileInfo;
 
 // ----- value and function -----
-    /*! File attribute - Name */
+    /*! \brief Attribute - Name */
     static const Glib::ustring FILE_NAME;
-    /*! File attribute - Size */
+    /*! \brief Attribute - Size */
     static const Glib::ustring FILE_SIZE;
-    /*! File attribute - Fast content type */
+    /*! \brief Attribute - Content type */
     static const Glib::ustring FILE_CONTENT_TYPE;
+    /*! \brief Attribute - Update time */
+    static const Glib::ustring FILE_UPDATE_TIME;
+    /*! \brief Attribute - Owner user */
+    static const Glib::ustring FILE_OWNER_USER;
 
     /*! \brief ファイルパス */
     const GString mFilePath;

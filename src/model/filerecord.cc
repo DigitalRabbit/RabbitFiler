@@ -25,21 +25,21 @@ namespace digirabi {
 FileRecord::FileRecord()
 {
     // 各 Column の情報を作成
-    mColumnMap.insert( std::pair< int, ColumnInfo* >
-            ( static_cast< int >( ColumnIndex::NAME   ), new ColumnInfo( "名前",       StringColumn() ) ) );
-    mColumnMap.insert( std::pair< int, ColumnInfo* >
-            ( static_cast< int >( ColumnIndex::SIZE   ), new ColumnInfo( "サイズ",     StringColumn() ) ) );
-    mColumnMap.insert( std::pair< int, ColumnInfo* >
-            ( static_cast< int >( ColumnIndex::TYPE   ), new ColumnInfo( "種類",       StringColumn() ) ) );
-    mColumnMap.insert( std::pair< int, ColumnInfo* >
-            ( static_cast< int >( ColumnIndex::ACCESS ), new ColumnInfo( "アクセス権", StringColumn() ) ) );
-    mColumnMap.insert( std::pair< int, ColumnInfo* >
-            ( static_cast< int >( ColumnIndex::UPDATE ), new ColumnInfo( "更新日時",   StringColumn() ) ) );
-    mColumnMap.insert( std::pair< int, ColumnInfo* >
-            ( static_cast< int >( ColumnIndex::HOLDER ), new ColumnInfo( "所有者",     StringColumn() ) ) );
+    mColumnMap.insert( std::pair<int, ColumnInfo*>
+            ( static_cast<int>( ColumnIndex::NAME   ), new ColumnInfo( "名前",       StringColumn() ) ) );
+    mColumnMap.insert( std::pair<int, ColumnInfo*>
+            ( static_cast<int>( ColumnIndex::SIZE   ), new ColumnInfo( "サイズ",     StringColumn() ) ) );
+    mColumnMap.insert( std::pair<int, ColumnInfo*>
+            ( static_cast<int>( ColumnIndex::TYPE   ), new ColumnInfo( "種類",       StringColumn() ) ) );
+    mColumnMap.insert( std::pair<int, ColumnInfo*>
+            ( static_cast<int>( ColumnIndex::ACCESS ), new ColumnInfo( "アクセス権", StringColumn() ) ) );
+    mColumnMap.insert( std::pair<int, ColumnInfo*>
+            ( static_cast<int>( ColumnIndex::UPDATE ), new ColumnInfo( "更新日時",   StringColumn() ) ) );
+    mColumnMap.insert( std::pair<int, ColumnInfo*>
+            ( static_cast<int>( ColumnIndex::OWNER  ), new ColumnInfo( "所有者",     StringColumn() ) ) );
 
     // Record へ登録
-    for( std::pair< int, ColumnInfo* > record : mColumnMap )
+    for( std::pair<int, ColumnInfo*> record : mColumnMap )
     {
         add( ( *record.second ).second );
     }
@@ -52,7 +52,7 @@ FileRecord::FileRecord()
  */
 FileRecord::~FileRecord()
 {
-    for( std::pair< int, ColumnInfo* > record : mColumnMap )
+    for( std::pair<int, ColumnInfo*> record : mColumnMap )
     {
         delete record.second;
     }
@@ -70,7 +70,7 @@ FileRecord::~FileRecord()
  */
 FileRecord::StringColumn FileRecord::getTreeModelColumn( ColumnIndex aIndex ) throw( std::invalid_argument )
 {
-    std::map< int, ColumnInfo* >::iterator iter = mColumnMap.find( static_cast< int >( aIndex ) );
+    std::map<int, ColumnInfo*>::iterator iter = mColumnMap.find( static_cast<int>( aIndex ) );
     if( iter == mColumnMap.end() )
     {
         throw std::invalid_argument( "Unknown column index." );

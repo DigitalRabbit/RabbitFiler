@@ -63,7 +63,7 @@ void FileStore::attach( Gtk::TreeView* apTreeView )
      *    ├ first  -> 列ヘッダ文字列
      *    └ second -> 列定義 TreeModelColumn インスタンス
      */
-    for( std::pair< int, FileRecord::ColumnInfo* > record : mRecord.mColumnMap )
+    for( std::pair<int, FileRecord::ColumnInfo*> record : mRecord.mColumnMap )
     {
         apTreeView->insert_column( ( *record.second ).first, ( *record.second ).second, record.first );
         Gtk::TreeView::Column* pColumn = apTreeView->get_column( record.first );
@@ -84,19 +84,22 @@ void FileStore::attach( Gtk::TreeView* apTreeView )
         FileRecord::StringColumn sizeCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::SIZE );
         FileRecord::StringColumn typeCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::TYPE );
         FileRecord::StringColumn accessCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::ACCESS );
+        FileRecord::StringColumn updateCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::UPDATE );
+        FileRecord::StringColumn ownerCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::OWNER );
         // モデルに行を追加するとビューの表示も同時に更新される
         for( std::string entry : entries )
         {
+            File file( Glib::build_filename( Glib::get_home_dir(), entry ) );
+
             Gtk::TreeModel::Row row = *( mrStore->append() );
-            GString str = Glib::get_home_dir();
-            str += "/" + entry;
-            File file( str );
             row[ nameCol ] = file.getName();
             row[ sizeCol ] = file.getSize();
             row[ typeCol ] = file.getContentTypeDescription();
             row[ accessCol ] = file.getAccessString();
+            row[ updateCol ] = file.getUpdateTime();
+            row[ ownerCol ] = file.getOwner();
 
-            mFileMap.insert( std::pair< GString, File >( file.getName(), file ) );
+            mFileMap.insert( std::pair<GString, File>( file.getName(), file ) );
         }
     }
     catch( std::invalid_argument& ex )
@@ -124,7 +127,7 @@ void FileStore::onRowActivated( const Gtk::TreeModel::Path& aPath, Gtk::TreeView
         Gtk::TreeModel::Row row = *iter;
 
         FileRecord::StringColumn nameCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::NAME );
-        std::map< GString, File >::iterator filePair = mFileMap.find( row[ nameCol ] );
+        std::map<GString, File>::iterator filePair = mFileMap.find( row[ nameCol ] );
         ( *filePair ).second.launchApp();
     }
 

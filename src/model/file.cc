@@ -22,17 +22,23 @@
 
 #include <fcntl.h>
 
+#include <glibmm/datetime.h>
+
 #include <giomm/appinfo.h>
 #include <giomm/contenttype.h>
 
 namespace digirabi {
 
-/*! File attribute - Name */
+/*! ファイル属性( <i>standard::name</i> ) */
 const Glib::ustring File::FILE_NAME = G_FILE_ATTRIBUTE_STANDARD_NAME;
-/*! File attribute - Size */
+/*! ファイル属性( <i>standard::size</i> ) */
 const Glib::ustring File::FILE_SIZE = G_FILE_ATTRIBUTE_STANDARD_SIZE;
-/*! File attribute - Content type */
+/*! ファイル属性( <i>standard::content-type</i> ) */
 const Glib::ustring File::FILE_CONTENT_TYPE = G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE;
+/*! ファイル属性( <i>time::modified</i> ) */
+const Glib::ustring File::FILE_UPDATE_TIME = G_FILE_ATTRIBUTE_TIME_MODIFIED;
+/*! ファイル属性( <i>owner::user</i> ) */
+const Glib::ustring File::FILE_OWNER_USER = G_FILE_ATTRIBUTE_OWNER_USER;
 
 /*!
  * 引き渡されたファイルパスに対してファイル存在チェックを行い、\n
@@ -177,6 +183,31 @@ Glib::ustring File::getAccessString()
 }
 
 /*!
+ * FileInfo から <b><i>&lt;time::modified&gt;</i></b> の属性を Glib::ustring で返却します。
+ *
+ * \note    返却される文字列は、現在のロケールに合わせた時間文字列になります。
+ *
+ * \return Glib::ustring    <b><i>&lt;time::modified&gt;</i></b> 属性値から取得した時間文字列
+ */
+Glib::ustring File::getUpdateTime()
+{
+    guint64 time = mFileInfo->get_attribute_uint64( FILE_UPDATE_TIME );
+    Glib::DateTime date = Glib::DateTime::create_now_local( time );
+
+    return ( date.format( "%c" ) );
+}
+
+/*!
+ * FileInfo から <b><i>&lt;owner::user&gt;</i></b> の属性を Glib::ustring で返却します。
+ *
+ * \return Glib::ustring    <b><i>&lt;owner::user&gt;</i></b> 属性値
+ */
+Glib::ustring File::getOwner()
+{
+    return ( mFileInfo->get_attribute_as_string( FILE_OWNER_USER ) );
+}
+
+/*!
  * ファイルに関連付けされたアプリケーションを起動します。
  *
  * \return  bool    起動可否
@@ -188,7 +219,11 @@ Glib::ustring File::getAccessString()
 bool File::launchApp()
 {
     GString contentType = mFileInfo->get_attribute_as_string( FILE_CONTENT_TYPE );
-    Glib::RefPtr< Gio::AppInfo > info = Gio::AppInfo::get_default_for_type( contentType );
+    Glib::RefPtr<Gio::AppInfo> info = Gio::AppInfo::get_default_for_type( contentType );
+    if( !info ) // <- Glib::RefPtr<T> の null check 方法
+    {
+        return ( false );
+    }
 
     return ( info->launch( Gio::File::create_for_path( mFilePath ) ) );
 }

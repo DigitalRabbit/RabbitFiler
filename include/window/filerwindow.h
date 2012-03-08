@@ -43,7 +43,7 @@ class FilerWindow : public Gtk::Window
 // ----- typedef -----
 private:
     /*! \brief GTK Builder ( 参照ポインタ ) */
-    typedef Glib::RefPtr< Gtk::Builder > RefGtkBuilder;
+    typedef Glib::RefPtr<Gtk::Builder> RefGtkBuilder;
 
 // ----- value and function -----
 public:

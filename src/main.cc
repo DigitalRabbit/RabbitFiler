@@ -46,7 +46,7 @@ int main( int argc, char* argv[] )
     Gtk::Main kit( argc, argv );
 
     // Load the Glade file and instiate its widgets:
-    Glib::RefPtr< Gtk::Builder > builder = Gtk::Builder::create();
+    Glib::RefPtr<Gtk::Builder> builder = Gtk::Builder::create();
     try
     {
         Glib::ustring filepath( Glib::get_home_dir() );

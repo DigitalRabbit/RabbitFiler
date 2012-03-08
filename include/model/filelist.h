@@ -54,9 +54,11 @@ private:
 
 public:
     /*! \brief ファイル一覧上の列種別( 文字列列 ) */
-    typedef Gtk::TreeModelColumn< GString > StringColumn;
+    typedef Gtk::TreeModelColumn<GString> StringColumn;
+    /*! \brief ファイル一覧上の列種別( アイコン ) */
+    typedef Gtk::TreeModelColumn<GString> IconColumn;
     /*! \brief 名前と種別のペア */
-    typedef std::pair< GString, StringColumn > ColumnInfo;
+    typedef std::pair<GString, StringColumn> ColumnInfo;
 
     /*! \brief 列 ID
      *
@@ -70,7 +72,7 @@ public:
         TYPE   = 2, /*!< 種類 */
         ACCESS = 3, /*!< アクセス権 */
         UPDATE = 4, /*!< 更新日時 */
-        HOLDER = 5, /*!< 所有者 */
+        OWNER  = 5, /*!< 所有者 */
     };
 
 // ----- value and function -----
@@ -87,7 +89,7 @@ protected:
 
 private:
     /*! \brief 列の index, 名前と種類のマップ */
-    std::map< int, ColumnInfo* > mColumnMap;
+    std::map<int, ColumnInfo*> mColumnMap;
 
 };
 
@@ -106,7 +108,7 @@ private:
     /*! \brief 文字列 */
     typedef Glib::ustring   GString;
     /*! \brief ファイル用リストストア */
-    typedef Glib::RefPtr< Gtk::ListStore > RefStore;
+    typedef Glib::RefPtr<Gtk::ListStore> RefStore;
 
 // ----- value and function -----
 public:
@@ -118,22 +120,22 @@ public:
     /*! \brief ListStore 設定 */
     void attach( Gtk::TreeView* apTreetView );
 
-    /*! \brief リスト行決定 */
-    void onRowActivated( const Gtk::TreeModel::Path& aPath, Gtk::TreeViewColumn* aColumn );
-
 protected:
 
 private:
     /*! \brief 接続先 TreeView ポインタ ( 解放不必要 ) */
     Gtk::TreeView* mpTreeView;
     /*! \brief 接続先 TreeSelection RefPtr */
-    Glib::RefPtr< Gtk::TreeSelection > mrSelection;
+    Glib::RefPtr<Gtk::TreeSelection> mrSelection;
     /*! \brief ファイル一覧用 ListStore RefPtr */
     RefStore mrStore;
     /*! \brief Column record */
     FileRecord mRecord;
     /*! \brief Name - File instance map */
-    std::map< GString, File > mFileMap;
+    std::map<GString, File> mFileMap;
+
+    /*! \brief リスト行決定 */
+    void onRowActivated( const Gtk::TreeModel::Path& aPath, Gtk::TreeViewColumn* aColumn );
 
 };
 

@@ -17,6 +17,8 @@
 
 #include "filerwindow.h"
 
+#include <gtkmm/paned.h>
+
 namespace digirabi {
 
 /*!
@@ -26,7 +28,7 @@ namespace digirabi {
  * \param[in]   aCobject     基底クラス引渡し用 Object instance
  * \param[in]   aRefBuilder  GTK Builder instance
  */
-FilerWindow::FilerWindow( BaseObjectType* aCobject, const Glib::RefPtr< Gtk::Builder >& aRefBuilder )
+FilerWindow::FilerWindow( BaseObjectType* aCobject, const Glib::RefPtr<Gtk::Builder>& aRefBuilder )
         : Gtk::Window( aCobject ), mrBuilder( aRefBuilder ), mpLeftView( nullptr )
 {
     // Get the Glade-instantiated widget, and connect a signal handler.
@@ -35,6 +37,12 @@ FilerWindow::FilerWindow( BaseObjectType* aCobject, const Glib::RefPtr< Gtk::Bui
 
     mrBuilder->get_widget( "tv_right", mpRightView );
     mRightStore.attach( mpRightView );
+
+    // divider の位置を2等分にする
+    Gtk::Paned* paned = nullptr;
+    mrBuilder->get_widget( "pn_fileview", paned );
+    int width = paned->get_allocated_width();
+    paned->set_position( width / 2 );
 
     return;
 }

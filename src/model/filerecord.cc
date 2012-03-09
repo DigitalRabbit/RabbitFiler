@@ -43,6 +43,8 @@ FileRecord::FileRecord()
     {
         add( ( *record.second ).second );
     }
+    // アイコンは最後に追加
+    add( mIconColumn );
 
     return;
 }

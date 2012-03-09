@@ -26,19 +26,25 @@
 
 #include <giomm/appinfo.h>
 #include <giomm/contenttype.h>
+#include <giomm/icon.h>
+
+#include <gtkmm/iconinfo.h>
+#include <gtkmm/icontheme.h>
 
 namespace digirabi {
 
 /*! ファイル属性( <i>standard::name</i> ) */
-const Glib::ustring File::FILE_NAME = G_FILE_ATTRIBUTE_STANDARD_NAME;
+const File::GString File::FILE_NAME = G_FILE_ATTRIBUTE_STANDARD_NAME;
 /*! ファイル属性( <i>standard::size</i> ) */
-const Glib::ustring File::FILE_SIZE = G_FILE_ATTRIBUTE_STANDARD_SIZE;
+const File::GString File::FILE_SIZE = G_FILE_ATTRIBUTE_STANDARD_SIZE;
 /*! ファイル属性( <i>standard::content-type</i> ) */
-const Glib::ustring File::FILE_CONTENT_TYPE = G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE;
+const File::GString File::FILE_CONTENT_TYPE = G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE;
 /*! ファイル属性( <i>time::modified</i> ) */
-const Glib::ustring File::FILE_UPDATE_TIME = G_FILE_ATTRIBUTE_TIME_MODIFIED;
+const File::GString File::FILE_UPDATE_TIME = G_FILE_ATTRIBUTE_TIME_MODIFIED;
 /*! ファイル属性( <i>owner::user</i> ) */
-const Glib::ustring File::FILE_OWNER_USER = G_FILE_ATTRIBUTE_OWNER_USER;
+const File::GString File::FILE_OWNER_USER = G_FILE_ATTRIBUTE_OWNER_USER;
+/*! ファイル属性( <i>standard::icon</i> ) */
+const File::GString File::FILE_STANDARD_ICON = G_FILE_ATTRIBUTE_STANDARD_ICON;
 
 /*!
  * 引き渡されたファイルパスに対してファイル存在チェックを行い、\n
@@ -205,6 +211,35 @@ Glib::ustring File::getUpdateTime()
 Glib::ustring File::getOwner()
 {
     return ( mFileInfo->get_attribute_as_string( FILE_OWNER_USER ) );
+}
+
+/*!
+ * FileInfo から <b><i>&lt;standard::icon&gt;</i></b> の属性を Gdk::Pixbuf で返却します。
+ *
+ * \note    <i>Glib::RefPtr<Gdk::Pixbuf></i> への変換手順は以下の通りです。
+ *          <ol>
+ *              <li><i>&lt;standard::icon&gt;</i> の値を <i>Gio::FileInfo::get_attribute_object</i> を使用して <i>Glib::RefPtr<Glib::Object></i> で取得</li>
+ *              <li><i>Glib::RefPtr<T>::cast_dynamic</i> で <i>Glib::RefPtr<Glib::Object></i> を <i>Glib::RefPtr<Glib::Icon></i> へキャスト</li>
+ *              <li>デフォルトのアイコンテーマを <i>Gtk::IconTheme::get_default()</i> で取得</li>
+ *              <li><i>Gtk::IconTheme::lookup_icon</i> で <i>Gtk::IconInfo</i> を取得</li>
+ *              <li><i>Gtk::IconInfo::load_icon</i> でアイコンをロード</li>
+ *          </ol>
+ *          <b><span style="color: red;">※.上記で変換できなかった場合は、 null ( Glib::RefPtr<T> の初期値 ) を返却して終了します。</span></b>
+ *
+ * \return Glig::RefPtr<Gdk::Pixbuf>    <b><i>&lt;standard::icon&gt;</i></b> 属性値を Gdk::Pixbuf の参照ポインタへ加工したもの
+ */
+Glib::RefPtr<Gdk::Pixbuf> File::getIcon()
+{
+    Glib::RefPtr<Gio::Icon> refIcon = Glib::RefPtr<Gio::Icon>::cast_dynamic(
+            mFileInfo->get_attribute_object( FILE_STANDARD_ICON ) );
+
+    // 変換できなかったらそのまま返却
+    if( !refIcon )  return ( Glib::RefPtr<Gdk::Pixbuf>() );
+
+    Gtk::IconInfo iconInfo = Gtk::IconTheme::get_default()->
+            lookup_icon( refIcon, 16, Gtk::ICON_LOOKUP_USE_BUILTIN );
+
+    return ( iconInfo.load_icon() );
 }
 
 /*!

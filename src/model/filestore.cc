@@ -65,11 +65,34 @@ void FileStore::attach( Gtk::TreeView* apTreeView )
      */
     for( std::pair<int, FileRecord::ColumnInfo*> record : mRecord.mColumnMap )
     {
-        apTreeView->insert_column( ( *record.second ).first, ( *record.second ).second, record.first );
+        /*! \todo ここに関しては、このままここに書いておくのは望ましくない。 */
+        if( record.first == static_cast<int>( FileRecord::ColumnIndex::NAME ) )
+        {
+            /* アイコン付き名前列を作って登録しておく */
+            Gtk::TreeView::Column* viewCol = Gtk::manage( new Gtk::TreeViewColumn( ( *record.second ).first ) );
+            viewCol->set_sort_column( ( *record.second ).second );
+            viewCol->set_resizable( true );
+
+            // アイコン列作成
+            Gtk::CellRendererPixbuf* renPixbuf = Gtk::manage( new Gtk::CellRendererPixbuf() );
+            viewCol->pack_start( *renPixbuf, false );
+            viewCol->add_attribute( *renPixbuf, "pixbuf", static_cast<int>( FileRecord::ColumnIndex::ICON ) );
+
+            // 名前列作成
+            Gtk::CellRendererText* renText = Gtk::manage( new Gtk::CellRendererText() );
+            viewCol->pack_start( *renText, false );
+            viewCol->add_attribute( *renText, "text", static_cast<int>( FileRecord::ColumnIndex::NAME ) );
+
+            mpTreeView->insert_column( *viewCol, record.first );
+            continue;
+        }
+
+        mpTreeView->insert_column( ( *record.second ).first, ( *record.second ).second, record.first );
         Gtk::TreeView::Column* pColumn = apTreeView->get_column( record.first );
         if( pColumn != nullptr )
         {
             pColumn->set_sort_column( ( *record.second ).second );
+            pColumn->set_resizable( true );
         }
     }
 
@@ -92,6 +115,8 @@ void FileStore::attach( Gtk::TreeView* apTreeView )
             File file( Glib::build_filename( Glib::get_home_dir(), entry ) );
 
             Gtk::TreeModel::Row row = *( mrStore->append() );
+
+            row[ mRecord.mIconColumn ] = file.getIcon();
             row[ nameCol ] = file.getName();
             row[ sizeCol ] = file.getSize();
             row[ typeCol ] = file.getContentTypeDescription();

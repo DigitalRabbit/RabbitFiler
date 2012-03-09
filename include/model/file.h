@@ -24,6 +24,8 @@
 
 #include <glibmm/refptr.h>
 
+#include <gdkmm/pixbuf.h>
+
 #include <giomm/file.h>
 #include <giomm/fileinfo.h>
 
@@ -39,8 +41,17 @@ namespace digirabi {
  */
 class File
 {
-public:
+// ----- typedef and inner class -----
+private:
+    /*! \brief このクラスで使用されるデフォルト文字列 */
+    typedef Glib::ustring GString;
+    /*! \brief GIO::File class 参照ポインタ */
+    typedef Glib::RefPtr<Gio::File> RefGFile;
+    /*! \brief GIO::FileInfo class 参照ポインタ */
+    typedef Glib::RefPtr<Gio::FileInfo> RefGFileInfo;
+
 // ----- value and function -----
+public:
     /*! \brief コンストラクタ */
     File( const Glib::ustring& aPath ) throw( std::invalid_argument );
     /*! \brief デストラクタ */
@@ -60,6 +71,8 @@ public:
     Glib::ustring getUpdateTime();
     /*! \brief 所有者文字列取得 */
     Glib::ustring getOwner();
+    /*! \brief ファイルアイコン取得 */
+    Glib::RefPtr<Gdk::Pixbuf> getIcon();
 
     /*! \brief 関連アプリ起動 */
     bool launchApp();
@@ -67,25 +80,18 @@ public:
 protected:
 
 private:
-// ----- typedef and inner class -----
-    /*! \brief このクラスで使用されるデフォルト文字列 */
-    typedef Glib::ustring GString;
-    /*! \brief GIO::File class 参照ポインタ */
-    typedef Glib::RefPtr<Gio::File> RefGFile;
-    /*! \brief GIO::FileInfo class 参照ポインタ */
-    typedef Glib::RefPtr<Gio::FileInfo> RefGFileInfo;
-
-// ----- value and function -----
     /*! \brief Attribute - Name */
-    static const Glib::ustring FILE_NAME;
+    static const GString FILE_NAME;
     /*! \brief Attribute - Size */
-    static const Glib::ustring FILE_SIZE;
+    static const GString FILE_SIZE;
     /*! \brief Attribute - Content type */
-    static const Glib::ustring FILE_CONTENT_TYPE;
+    static const GString FILE_CONTENT_TYPE;
     /*! \brief Attribute - Update time */
-    static const Glib::ustring FILE_UPDATE_TIME;
+    static const GString FILE_UPDATE_TIME;
     /*! \brief Attribute - Owner user */
-    static const Glib::ustring FILE_OWNER_USER;
+    static const GString FILE_OWNER_USER;
+    /*! \brief Attribute - Standard icon */
+    static const GString FILE_STANDARD_ICON;
 
     /*! \brief ファイルパス */
     const GString mFilePath;

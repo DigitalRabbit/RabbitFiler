@@ -26,6 +26,8 @@
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
 
+#include <gdkmm/pixbuf.h>
+
 #include <gtkmm/liststore.h>
 #include <gtkmm/treeview.h>
 #include <gtkmm/treemodelcolumn.h>
@@ -56,7 +58,7 @@ public:
     /*! \brief ファイル一覧上の列種別( 文字列列 ) */
     typedef Gtk::TreeModelColumn<GString> StringColumn;
     /*! \brief ファイル一覧上の列種別( アイコン ) */
-    typedef Gtk::TreeModelColumn<GString> IconColumn;
+    typedef Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf>> IconColumn;
     /*! \brief 名前と種別のペア */
     typedef std::pair<GString, StringColumn> ColumnInfo;
 
@@ -73,6 +75,7 @@ public:
         ACCESS = 3, /*!< アクセス権 */
         UPDATE = 4, /*!< 更新日時 */
         OWNER  = 5, /*!< 所有者 */
+        ICON   = 6, /*!< ファイルアイコン */
     };
 
 // ----- value and function -----
@@ -88,6 +91,8 @@ public:
 protected:
 
 private:
+    /*! \brief アイコン表示列 */
+    IconColumn mIconColumn;
     /*! \brief 列の index, 名前と種類のマップ */
     std::map<int, ColumnInfo*> mColumnMap;
 

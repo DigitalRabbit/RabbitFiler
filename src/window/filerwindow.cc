@@ -38,12 +38,6 @@ FilerWindow::FilerWindow( BaseObjectType* aCobject, const Glib::RefPtr<Gtk::Buil
     mrBuilder->get_widget( "tv_right", mpRightView );
     mRightStore.attach( mpRightView );
 
-    // divider の位置を2等分にする
-    Gtk::Paned* paned = nullptr;
-    mrBuilder->get_widget( "pn_fileview", paned );
-    int width = paned->get_allocated_width();
-    paned->set_position( width / 2 );
-
     return;
 }
 

@@ -17,6 +17,8 @@
 
 #include "filelist.h"
 
+#include <iostream>
+
 namespace digirabi {
 
 /*!
@@ -24,27 +26,30 @@ namespace digirabi {
  */
 FileRecord::FileRecord()
 {
+    FUNC_LOG();
+
     // 各 Column の情報を作成
-    mColumnMap.insert( std::pair<int, ColumnInfo*>
-            ( static_cast<int>( ColumnIndex::NAME   ), new ColumnInfo( "名前",       StringColumn() ) ) );
-    mColumnMap.insert( std::pair<int, ColumnInfo*>
-            ( static_cast<int>( ColumnIndex::SIZE   ), new ColumnInfo( "サイズ",     StringColumn() ) ) );
-    mColumnMap.insert( std::pair<int, ColumnInfo*>
-            ( static_cast<int>( ColumnIndex::TYPE   ), new ColumnInfo( "種類",       StringColumn() ) ) );
-    mColumnMap.insert( std::pair<int, ColumnInfo*>
-            ( static_cast<int>( ColumnIndex::ACCESS ), new ColumnInfo( "アクセス権", StringColumn() ) ) );
-    mColumnMap.insert( std::pair<int, ColumnInfo*>
-            ( static_cast<int>( ColumnIndex::UPDATE ), new ColumnInfo( "更新日時",   StringColumn() ) ) );
-    mColumnMap.insert( std::pair<int, ColumnInfo*>
-            ( static_cast<int>( ColumnIndex::OWNER  ), new ColumnInfo( "所有者",     StringColumn() ) ) );
+    mColumnMap.insert( ColumnPair( ColumnIndex::NAME  , new ColumnInfo( "名前",       new StringColumn() ) ) );
+    mColumnMap.insert( ColumnPair( ColumnIndex::SIZE  , new ColumnInfo( "サイズ",     new StringColumn() ) ) );
+    mColumnMap.insert( ColumnPair( ColumnIndex::TYPE  , new ColumnInfo( "種類",       new StringColumn() ) ) );
+    mColumnMap.insert( ColumnPair( ColumnIndex::ACCESS, new ColumnInfo( "アクセス権", new StringColumn() ) ) );
+    mColumnMap.insert( ColumnPair( ColumnIndex::UPDATE, new ColumnInfo( "更新日時",   new StringColumn() ) ) );
+    mColumnMap.insert( ColumnPair( ColumnIndex::OWNER , new ColumnInfo( "所有者",     new StringColumn() ) ) );
+    mColumnMap.insert( ColumnPair( ColumnIndex::ICON  , new ColumnInfo( "アイコン",   new IconColumn()   ) ) );
 
     // Record へ登録
-    for( std::pair<int, ColumnInfo*> record : mColumnMap )
+    for( ColumnPair pair : mColumnMap )
     {
-        add( ( *record.second ).second );
+        ColumnInfo* column = pair.second;
+        if( typeid( StringColumn ) == column->getTypeInfo() )
+        {
+            add( *( column->getCastPointer<StringColumn>() ) );
+        }
+        else if( typeid( IconColumn ) == column->getTypeInfo() )
+        {
+            add( *( column->getCastPointer<IconColumn>() ) );
+        }
     }
-    // アイコンは最後に追加
-    add( mIconColumn );
 
     return;
 }
@@ -54,31 +59,14 @@ FileRecord::FileRecord()
  */
 FileRecord::~FileRecord()
 {
-    for( std::pair<int, ColumnInfo*> record : mColumnMap )
+    FUNC_LOG();
+
+    for( ColumnPair pair : mColumnMap )
     {
-        delete record.second;
+        delete pair.second;
     }
 
     return;
-}
-
-/*!
- * 引数を Index として列に定義されている Gtk::TreeModelColumn インスタンスを返却します。
- *
- * \param[in]   aIndex                      取得する Gtk::TreeModelColumn の列 Index
- * \return      FileRecord::StringColumn    列 Index の位置に指定されている Gtk::TreeModelColumn インスタンスポインタ
- *
- * \exception   std::invalid_argument   引数に不正な列 Index が渡された
- */
-FileRecord::StringColumn FileRecord::getTreeModelColumn( ColumnIndex aIndex ) throw( std::invalid_argument )
-{
-    std::map<int, ColumnInfo*>::iterator iter = mColumnMap.find( static_cast<int>( aIndex ) );
-    if( iter == mColumnMap.end() )
-    {
-        throw std::invalid_argument( "Unknown column index." );
-    }
-
-    return ( ( *( *iter ).second ).second );
 }
 
 } // namespace digirabi

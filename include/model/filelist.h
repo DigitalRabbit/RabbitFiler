@@ -13,15 +13,18 @@
  * \brief   ファイル一覧系 Class header file
  *
  * ファイル一覧を表示するために使用する Class を記述しているヘッダーファイルです。\n
- * ここに記述されているのは TreeModelColumnRecord, ListStore を簡便に使用するための Class です。
+ * ここに記述されているのは TreeModelColumnRecord, ListStore を簡便に使用するための Class 群です。
  *
  * \author  Digital Rabbit(digital.rabbit.jp@gmail.com)
  * \date    2012/02/29
  */
-#include "file.h"
+#include "generic.h"
+#include "model/file.h"
 
 #include <map>
 #include <stdexcept>
+#include <typeinfo>
+#include <iostream>
 
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
@@ -37,6 +40,87 @@ namespace digirabi {
 class FileRecord;
 class FileStore;
 
+/*! \brief Column - Name ペア Class
+ *
+ * 各列の名称と Gtk::TreeModelColumn をまとめている Class です。\n
+ * Gtk::TreeModelColumn は template class であるため、\n
+ * void* として、ポインタを保管するようになっています。
+ *
+ * \note    void* の実体は、列に設定されている Gtk::TreeModelColumn<T> のポインタです。\n
+ *          また、ここで設定した pointer 先のメモリ領域は、デストラクタで解放されます。
+ *
+ * \attention   ここで設定できる TreeModelColumn は、 typedef で定義されているものだけになります。
+ */
+class ColumnInfo
+{
+// ----- typedef -----
+public:
+    /*! \brief 文字列 */
+    typedef Glib::ustring GString;
+    /*! \brief ファイル一覧上の列種別( 文字列列 ) */
+    typedef Gtk::TreeModelColumn<GString> StringColumn;
+    /*! \brief ファイル一覧上の列種別( アイコン ) */
+    typedef Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf>> IconColumn;
+
+public:
+    // コンストラクタ
+    template<class TreeModel>
+    ColumnInfo( GString aName, TreeModel* aColumn ) throw( std::invalid_argument )
+            : mColumnName( aName ), mModelColumn( aColumn ), mInfo( typeid( *aColumn ) )
+    {
+        FUNC_LOG();
+
+        if( mInfo != typeid( StringColumn ) && mInfo != typeid( IconColumn ) )
+        {
+            delete aColumn;
+            throw std::invalid_argument( "Invalid TreeModelColumn pointer" );
+        }
+    }
+
+    // デストラクタ
+    ~ColumnInfo()
+    {
+        FUNC_LOG();
+
+        if( mInfo == typeid( StringColumn ) )      delete static_cast<StringColumn*>( mModelColumn );
+        else if( mInfo == typeid( IconColumn ) )   delete static_cast<IconColumn*>( mModelColumn );
+    }
+
+    // 列タイトル取得
+    GString getColumnName()
+    {
+        return ( mColumnName );
+    }
+
+    // type_info 取得
+    const std::type_info& getTypeInfo()
+    {
+        return ( mInfo );
+    }
+
+    // ポインタキャスト
+    template<class ColumnType>
+    ColumnType* getCastPointer()
+    {
+        ColumnType* result = nullptr;
+        if( typeid( ColumnType ) == getTypeInfo() )
+        {
+            result = static_cast<ColumnType*>( mModelColumn );
+        }
+
+        return ( result );
+    }
+
+private:
+    // 名前
+    GString mColumnName;
+    // 列オブジェクトポインタ
+    void* mModelColumn;
+    // ポインタ型情報
+    const std::type_info& mInfo;
+
+};
+
 /*! \brief ファイル表示 ColumnRecord
  *
  * Rabbit Filer の file / Directory 情報を表すレコード Class です。\n
@@ -49,19 +133,8 @@ class FileRecord : public Gtk::TreeModelColumnRecord
 {
     friend class FileStore;
 
-// ----- typedef and inner class -----
-private:
-    /*! \brief 文字列 */
-    typedef Glib::ustring GString;
-
+// ----- inner class and enum -----
 public:
-    /*! \brief ファイル一覧上の列種別( 文字列列 ) */
-    typedef Gtk::TreeModelColumn<GString> StringColumn;
-    /*! \brief ファイル一覧上の列種別( アイコン ) */
-    typedef Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf>> IconColumn;
-    /*! \brief 名前と種別のペア */
-    typedef std::pair<GString, StringColumn> ColumnInfo;
-
     /*! \brief 列 ID
      *
      * 各列の Index を表す class enum です。\n
@@ -78,6 +151,21 @@ public:
         ICON   = 6, /*!< ファイルアイコン */
     };
 
+// ----- typedef -----
+public:
+    /*! \brief 文字列 */
+    typedef Glib::ustring GString;
+
+    /*! \brief ファイル一覧上の列種別( 文字列列 ) */
+    typedef ColumnInfo::StringColumn StringColumn;
+    /*! \brief ファイル一覧上の列種別( アイコン ) */
+    typedef ColumnInfo::IconColumn IconColumn;
+
+    /*! \brief インデックスと ColumnInfo のマップ */
+    typedef std::map<ColumnIndex, ColumnInfo*> ColumnMap;
+    /*! \brief インデックスと ColumnInfo のペア */
+    typedef std::pair<ColumnIndex, ColumnInfo*> ColumnPair;
+
 // ----- value and function -----
 public:
     /*! \brief コンストラクタ */
@@ -85,16 +173,33 @@ public:
     /*! \brief デストラクタ */
     ~FileRecord();
 
-    /*! \brief TreeModelColumn 取得 */
-    StringColumn getTreeModelColumn( ColumnIndex aIndex ) throw( std::invalid_argument );
+    /*! \brief TreeModelColumn 取得
+     *
+     * 引数を Index として列に定義されている Gtk::TreeModelColumn インスタンスを返却します。
+     *
+     * \param[in]   aIndex                      取得する Gtk::TreeModelColumn の列 Index
+     * \return      FileRecord::StringColumn    列 Index の位置に指定されている Gtk::TreeModelColumn インスタンスポインタ
+     * \retval      nullptr                     template の型が合わない
+     *
+     * \exception   std::invalid_argument   引数に不正な列 Index が渡された
+     */
+    template<class ColumnType>
+    ColumnType* getModelColumn( ColumnIndex aIndex ) throw( std::invalid_argument )
+    {
+        ColumnMap::iterator iter = mColumnMap.find( aIndex );
+        if( iter == mColumnMap.end() )
+        {
+            throw std::invalid_argument( "Unknown column index." );
+        }
+
+        return ( ( *iter ).second->getCastPointer<ColumnType>() );
+    }
 
 protected:
 
 private:
-    /*! \brief アイコン表示列 */
-    IconColumn mIconColumn;
     /*! \brief 列の index, 名前と種類のマップ */
-    std::map<int, ColumnInfo*> mColumnMap;
+    ColumnMap mColumnMap;
 
 };
 
@@ -130,8 +235,6 @@ protected:
 private:
     /*! \brief 接続先 TreeView ポインタ ( 解放不必要 ) */
     Gtk::TreeView* mpTreeView;
-    /*! \brief 接続先 TreeSelection RefPtr */
-    Glib::RefPtr<Gtk::TreeSelection> mrSelection;
     /*! \brief ファイル一覧用 ListStore RefPtr */
     RefStore mrStore;
     /*! \brief Column record */

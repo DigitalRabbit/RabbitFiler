@@ -19,6 +19,7 @@
  * \date    2012/02/29
  */
 
+#include "generic.h"
 #include "model/filelist.h"
 
 #include <glibmm/refptr.h>

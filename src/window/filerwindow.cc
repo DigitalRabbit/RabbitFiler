@@ -31,6 +31,8 @@ namespace digirabi {
 FilerWindow::FilerWindow( BaseObjectType* aCobject, const Glib::RefPtr<Gtk::Builder>& aRefBuilder )
         : Gtk::Window( aCobject ), mrBuilder( aRefBuilder ), mpLeftView( nullptr )
 {
+    FUNC_LOG();
+
     // Get the Glade-instantiated widget, and connect a signal handler.
     mrBuilder->get_widget( "tv_left", mpLeftView );
     mLeftStore.attach( mpLeftView );
@@ -42,7 +44,10 @@ FilerWindow::FilerWindow( BaseObjectType* aCobject, const Glib::RefPtr<Gtk::Buil
 }
 
 /*! <b>現在未使用</b> */
-FilerWindow::~FilerWindow() {}
+FilerWindow::~FilerWindow()
+{
+    FUNC_LOG();
+}
 
 } // namespace digirabi
 

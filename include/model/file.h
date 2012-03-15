@@ -20,6 +20,8 @@
  */
 #pragma once
 
+#include "generic.h"
+
 #include <stdexcept>
 
 #include <glibmm/refptr.h>

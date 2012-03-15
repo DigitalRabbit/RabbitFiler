@@ -230,12 +230,12 @@ Glib::ustring File::getOwner()
  */
 Glib::RefPtr<Gdk::Pixbuf> File::getIcon()
 {
-    Glib::RefPtr<Gio::Icon> refIcon = Glib::RefPtr<Gio::Icon>::cast_dynamic(
-            mFileInfo->get_attribute_object( FILE_STANDARD_ICON ) );
+    Glib::RefPtr<Gio::Icon> refIcon = mFileInfo->get_icon();
 
     // 変換できなかったらそのまま返却
     if( !refIcon )  return ( Glib::RefPtr<Gdk::Pixbuf>() );
 
+    // デフォルトの IconTheme から、 Glib::RefPtr<Gio::Icon> を使って IconInfo を取得
     Gtk::IconInfo iconInfo = Gtk::IconTheme::get_default()->
             lookup_icon( refIcon, 16, Gtk::ICON_LOOKUP_USE_BUILTIN );
 

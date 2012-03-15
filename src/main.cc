@@ -42,6 +42,8 @@
  */
 int main( int argc, char* argv[] )
 {
+    FUNC_LOG();
+
     // Create Main roop instance.
     Gtk::Main kit( argc, argv );
 

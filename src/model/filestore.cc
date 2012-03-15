@@ -26,11 +26,16 @@ namespace digirabi {
  */
 FileStore::FileStore()
 {
+    FUNC_LOG();
+
     mrStore = Gtk::ListStore::create( mRecord );
 }
 
 /*! <b>現在未使用</b> */
-FileStore::~FileStore() {}
+FileStore::~FileStore()
+{
+    FUNC_LOG();
+}
 
 /*!
  * 渡された TreeView へと ListStore を設定し、\n
@@ -47,12 +52,12 @@ FileStore::~FileStore() {}
  */
 void FileStore::attach( Gtk::TreeView* apTreeView )
 {
+    FUNC_LOG();
+
     apTreeView->set_model( mrStore );
 
     mpTreeView = apTreeView;
     mpTreeView->signal_row_activated().connect( sigc::mem_fun( *this, &FileStore::onRowActivated ) );
-
-    mrSelection = mpTreeView->get_selection();
 
     /* ListStore に登録済みの列を TextView に登録し、ソートを可能にする。
      * ちなみに、取得した Record の内容は、以下の通り。
@@ -63,14 +68,19 @@ void FileStore::attach( Gtk::TreeView* apTreeView )
      *    ├ first  -> 列ヘッダ文字列
      *    └ second -> 列定義 TreeModelColumn インスタンス
      */
-    for( std::pair<int, FileRecord::ColumnInfo*> record : mRecord.mColumnMap )
+    /*! \todo Record 登録は FileRecord にやらせたほうがいいか… */
+    for( FileRecord::ColumnPair record : mRecord.mColumnMap )
     {
+        ColumnInfo* info = record.second;
+        int columnIndex = static_cast<int>( record.first );
+
         /*! \todo ここに関しては、このままここに書いておくのは望ましくない。 */
-        if( record.first == static_cast<int>( FileRecord::ColumnIndex::NAME ) )
+        if( record.first == FileRecord::ColumnIndex::NAME )
         {
+
             /* アイコン付き名前列を作って登録しておく */
-            Gtk::TreeView::Column* viewCol = Gtk::manage( new Gtk::TreeViewColumn( ( *record.second ).first ) );
-            viewCol->set_sort_column( ( *record.second ).second );
+            Gtk::TreeView::Column* viewCol = Gtk::manage( new Gtk::TreeViewColumn( info->getColumnName() ) );
+            viewCol->set_sort_column( *( info->getCastPointer<ColumnInfo::StringColumn>() ) );
             viewCol->set_resizable( true );
 
             // アイコン列作成
@@ -81,17 +91,21 @@ void FileStore::attach( Gtk::TreeView* apTreeView )
             // 名前列作成
             Gtk::CellRendererText* renText = Gtk::manage( new Gtk::CellRendererText() );
             viewCol->pack_start( *renText, false );
-            viewCol->add_attribute( *renText, "text", static_cast<int>( FileRecord::ColumnIndex::NAME ) );
+            viewCol->add_attribute( *renText, "text", columnIndex );
 
-            mpTreeView->insert_column( *viewCol, record.first );
+            mpTreeView->insert_column( *viewCol, columnIndex );
+            continue;
+        }
+        else if( record.first == FileRecord::ColumnIndex::ICON )
+        {
             continue;
         }
 
-        mpTreeView->insert_column( ( *record.second ).first, ( *record.second ).second, record.first );
-        Gtk::TreeView::Column* pColumn = apTreeView->get_column( record.first );
+        mpTreeView->insert_column( info->getColumnName(), *( info->getCastPointer<ColumnInfo::StringColumn>() ), columnIndex );
+        Gtk::TreeView::Column* pColumn = apTreeView->get_column( columnIndex );
         if( pColumn != nullptr )
         {
-            pColumn->set_sort_column( ( *record.second ).second );
+            pColumn->set_sort_column( *( info->getCastPointer<ColumnInfo::StringColumn>() ) );
             pColumn->set_resizable( true );
         }
     }
@@ -103,12 +117,13 @@ void FileStore::attach( Gtk::TreeView* apTreeView )
     /*! \todo ユーティリティを使ってファイル情報を全て取得する。 */
     try
     {
-        FileRecord::StringColumn nameCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::NAME );
-        FileRecord::StringColumn sizeCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::SIZE );
-        FileRecord::StringColumn typeCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::TYPE );
-        FileRecord::StringColumn accessCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::ACCESS );
-        FileRecord::StringColumn updateCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::UPDATE );
-        FileRecord::StringColumn ownerCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::OWNER );
+        FileRecord::StringColumn* nameCol   = mRecord.getModelColumn<FileRecord::StringColumn>( FileRecord::ColumnIndex::NAME );
+        FileRecord::StringColumn* sizeCol   = mRecord.getModelColumn<FileRecord::StringColumn>( FileRecord::ColumnIndex::SIZE );
+        FileRecord::StringColumn* typeCol   = mRecord.getModelColumn<FileRecord::StringColumn>( FileRecord::ColumnIndex::TYPE );
+        FileRecord::StringColumn* accessCol = mRecord.getModelColumn<FileRecord::StringColumn>( FileRecord::ColumnIndex::ACCESS );
+        FileRecord::StringColumn* updateCol = mRecord.getModelColumn<FileRecord::StringColumn>( FileRecord::ColumnIndex::UPDATE );
+        FileRecord::StringColumn* ownerCol  = mRecord.getModelColumn<FileRecord::StringColumn>( FileRecord::ColumnIndex::OWNER );
+        FileRecord::IconColumn*   iconCol   = mRecord.getModelColumn<FileRecord::IconColumn>( FileRecord::ColumnIndex::ICON );
         // モデルに行を追加するとビューの表示も同時に更新される
         for( std::string entry : entries )
         {
@@ -116,13 +131,13 @@ void FileStore::attach( Gtk::TreeView* apTreeView )
 
             Gtk::TreeModel::Row row = *( mrStore->append() );
 
-            row[ mRecord.mIconColumn ] = file.getIcon();
-            row[ nameCol ] = file.getName();
-            row[ sizeCol ] = file.getSize();
-            row[ typeCol ] = file.getContentTypeDescription();
-            row[ accessCol ] = file.getAccessString();
-            row[ updateCol ] = file.getUpdateTime();
-            row[ ownerCol ] = file.getOwner();
+            row[ *iconCol ] = file.getIcon();
+            row[ *nameCol ] = file.getName();
+            row[ *sizeCol ] = file.getSize();
+            row[ *typeCol ] = file.getContentTypeDescription();
+            row[ *accessCol ] = file.getAccessString();
+            row[ *updateCol ] = file.getUpdateTime();
+            row[ *ownerCol ] = file.getOwner();
 
             mFileMap.insert( std::pair<GString, File>( file.getName(), file ) );
         }
@@ -145,14 +160,16 @@ void FileStore::attach( Gtk::TreeView* apTreeView )
  */
 void FileStore::onRowActivated( const Gtk::TreeModel::Path& aPath, Gtk::TreeViewColumn* aColumn )
 {
+    FUNC_LOG();
+
     // Path オブジェクトから行情報を取得し、 File 別のランチャーを起動。
     Gtk::TreeModel::iterator iter = mrStore->get_iter( aPath );
     if( iter != nullptr )
     {
         Gtk::TreeModel::Row row = *iter;
 
-        FileRecord::StringColumn nameCol = mRecord.getTreeModelColumn( FileRecord::ColumnIndex::NAME );
-        std::map<GString, File>::iterator filePair = mFileMap.find( row[ nameCol ] );
+        FileRecord::StringColumn* nameCol = mRecord.getModelColumn<FileRecord::StringColumn>( FileRecord::ColumnIndex::NAME );
+        std::map<GString, File>::iterator filePair = mFileMap.find( row[ *nameCol ] );
         ( *filePair ).second.launchApp();
     }
 

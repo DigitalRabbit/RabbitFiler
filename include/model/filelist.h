@@ -245,6 +245,12 @@ private:
     /*! \brief リスト行決定 */
     void onRowActivated( const Gtk::TreeModel::Path& aPath, Gtk::TreeViewColumn* aColumn );
 
+    /*! \brief 一覧パス移動 */
+    bool moveDirectory( const GString& aDirPath );
+
+    /*! \brief 名前列比較 */
+    int onNameSort( const Gtk::TreeModel::iterator& aValue, const Gtk::TreeModel::iterator& aValue2 );
+
 };
 
 } // namespace digirabi

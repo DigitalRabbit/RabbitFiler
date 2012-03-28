@@ -23,6 +23,7 @@
 #include <fcntl.h>
 
 #include <glibmm/datetime.h>
+#include <glibmm/fileutils.h>
 
 #include <giomm/appinfo.h>
 #include <giomm/contenttype.h>
@@ -58,7 +59,7 @@ const File::GString File::FILE_STANDARD_ICON = G_FILE_ATTRIBUTE_STANDARD_ICON;
 File::File( const GString& aPath ) throw( std::invalid_argument )
     : mFilePath( aPath )
 {
-    if( mFilePath.empty() || !Glib::file_test( mFilePath, Glib::FILE_TEST_EXISTS ) )
+    if( mFilePath.empty() || !Glib::file_test( mFilePath, Glib::FileTest::FILE_TEST_EXISTS ) )
     {
         GString what = "Unknown file or directory path.\nValue : " + mFilePath;
         throw std::invalid_argument( what );
@@ -80,7 +81,17 @@ File::~File() {}
  */
 Glib::ustring File::getName()
 {
-    return ( mFileInfo->get_attribute_as_string( FILE_NAME ) );
+    std::string name = mFileInfo->get_attribute_byte_string( FILE_NAME );
+
+    if( name == "" ) return ( "" );
+
+    // UTF-8 へ変換
+    std::ostringstream output;
+    output.imbue(std::locale("")); // use the user's locale for this stream
+    output << name;
+
+    // 変換後の文字列を返却
+    return ( Glib::locale_to_utf8( output.str() ) );
 }
 
 /*!
@@ -218,8 +229,7 @@ Glib::ustring File::getOwner()
  *
  * \note    <i>Glib::RefPtr<Gdk::Pixbuf></i> への変換手順は以下の通りです。
  *          <ol>
- *              <li><i>&lt;standard::icon&gt;</i> の値を <i>Gio::FileInfo::get_attribute_object</i> を使用して <i>Glib::RefPtr<Glib::Object></i> で取得</li>
- *              <li><i>Glib::RefPtr<T>::cast_dynamic</i> で <i>Glib::RefPtr<Glib::Object></i> を <i>Glib::RefPtr<Glib::Icon></i> へキャスト</li>
+ *              <li><i>Gio::FileInfo::get_icon</i> を使用して <i>Glib::RefPtr<Gio::Icon></i> を取得</li>
  *              <li>デフォルトのアイコンテーマを <i>Gtk::IconTheme::get_default()</i> で取得</li>
  *              <li><i>Gtk::IconTheme::lookup_icon</i> で <i>Gtk::IconInfo</i> を取得</li>
  *              <li><i>Gtk::IconInfo::load_icon</i> でアイコンをロード</li>
@@ -243,6 +253,30 @@ Glib::RefPtr<Gdk::Pixbuf> File::getIcon()
 }
 
 /*!
+ * インスタンスがディレクトリであるかを返却します。
+ *
+ * \return  bool    ディレクトリ判定
+ * \retval  true    ディレクトリである。
+ * \retval  false   ディレクトリではない。
+ */
+bool File::isDirectory()
+{
+    return ( Glib::file_test( mFilePath, Glib::FileTest::FILE_TEST_IS_DIR ) );
+}
+
+/*!
+ * インスタンスが保持しているファイルパスを返却します。
+ *
+ * \return  const GString&  インスタンスが保持しているファイルパス
+ */
+const Glib::ustring& File::getFilePath()
+{
+    FUNC_LOG();
+
+    return ( mFilePath );
+}
+
+/*!
  * ファイルに関連付けされたアプリケーションを起動します。
  *
  * \return  bool    起動可否
@@ -253,6 +287,8 @@ Glib::RefPtr<Gdk::Pixbuf> File::getIcon()
  */
 bool File::launchApp()
 {
+    FUNC_LOG();
+
     GString contentType = mFileInfo->get_attribute_as_string( FILE_CONTENT_TYPE );
     Glib::RefPtr<Gio::AppInfo> info = Gio::AppInfo::get_default_for_type( contentType );
     if( !info ) // <- Glib::RefPtr<T> の null check 方法

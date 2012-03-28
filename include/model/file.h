@@ -76,6 +76,11 @@ public:
     /*! \brief ファイルアイコン取得 */
     Glib::RefPtr<Gdk::Pixbuf> getIcon();
 
+    /*! \brief ディレクトリ判定 */
+    bool isDirectory();
+    /*! \brief パス取得 */
+    const Glib::ustring& getFilePath();
+
     /*! \brief 関連アプリ起動 */
     bool launchApp();
 

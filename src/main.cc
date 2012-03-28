@@ -20,6 +20,7 @@
 
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
+#include <glibmm/fileutils.h>
 
 #include <gtkmm/main.h>
 #include <gtkmm/builder.h>
@@ -44,6 +45,8 @@ int main( int argc, char* argv[] )
 {
     FUNC_LOG();
 
+    setlocale( LC_ALL, "" );
+
     // Create Main roop instance.
     Gtk::Main kit( argc, argv );
 
@@ -53,7 +56,7 @@ int main( int argc, char* argv[] )
     {
         Glib::ustring filepath( Glib::get_home_dir() );
         filepath += "/.rabbitfiler/res/filer.glade";
-        if( Glib::file_test( filepath, Glib::FILE_TEST_EXISTS | Glib::FILE_TEST_IS_REGULAR ) ) {
+        if( Glib::file_test( filepath, Glib::FileTest::FILE_TEST_EXISTS | Glib::FileTest::FILE_TEST_IS_REGULAR ) ) {
             builder->add_from_file( filepath );
         }
         else {
